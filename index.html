@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Forca</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Jogo da Forca</h1>
+    
+    <div id="inicio">
+        <p>Informe seu nome:</p>
+        <input type="text" id="nomeJogador">
+        
+        <p>Escolha a dificuldade:</p>
+        <select id="dificuldade">
+            <option value="facil">Fácil</option>
+            <option value="medio">Médio</option>
+            <option value="dificil">Difícil</option>
+        </select>
+
+        <button onclick="iniciarJogo()">Iniciar Jogo</button>
+    </div>
+
+    <div id="jogo" style="display: none;">
+        <p id="saudacao"></p>
+        <p>Descubra a palavra secreta!</p>
+        <p id="palavra">Carregando...</p>
+        <p id="vidas">Vidas restantes: 6</p>
+        
+        <input type="text" id="letraInput" maxlength="1">
+        <button onclick="verificarLetra()">Tentar</button>
+        
+        <p id="mensagem"></p>
+        <button onclick="location.reload()">Jogar Novamente</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
