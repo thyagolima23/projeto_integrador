@@ -1,93 +1,88 @@
-let resposta = [];
-let letrasUsadas = [];
-let vida = 6;
-let jogadorNome = "";
-let dificuldade = "";
+import getWord from "./words.js";
 
-async function buscarPalavra() {
-    let palavraValida = false;
+const contentBtns = document.querySelector(".btns");
+const contentGuessWord = document.querySelector(".guess-word");
+const img = document.querySelector("img");
+const contentClue = document.querySelector(".clue");
+const btnNew = document.querySelector(".new");
+btnNew.onclick = () => init();
+let indexImg;
 
-    while (!palavraValida) {
-        try {
-            let response = await fetch("https://api.dicionario-aberto.net/random");
-            let data = await response.json();
-            let palavra = data.word.toLowerCase();
+init();
 
-            if (
-                (dificuldade === "facil" && palavra.length <= 5) ||
-                (dificuldade === "medio" && palavra.length >= 6 && palavra.length <= 8) ||
-                (dificuldade === "dificil" && palavra.length >= 9)
-            ) {
-                palavraEscolhida = palavra;
-                palavraValida = true;
-            }
-        } catch (error) {
-            console.error("Erro ao buscar palavra:", error);
-        }
-    }
+function init() {
+  indexImg = 1;
+  img.src='img1.png';
+
+  generateGuessSection();
+  generateButtons();
 }
 
-async function iniciarJogo() {
-    jogadorNome = document.getElementById("nomeJogador").value.trim();
-    dificuldade = document.getElementById("dificuldade").value;
+function generateGuessSection() {
+  contentGuessWord.textContent = "";
 
-    if (!jogadorNome) {
-        alert("Por favor, insira seu nome!");
-        return;
-    }
+  const { word, clue } = getWord();
+  const wordWithoutAccent = word
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
-    document.getElementById("inicio").style.display = "none";
-    document.getElementById("jogo").style.display = "block";
-    document.getElementById("saudacao").innerText = `Olá, ${jogadorNome}! Você escolheu o nível ${dificuldade.toUpperCase()}.`;
+  Array.from(wordWithoutAccent).forEach((letter) => {
+    const span = document.createElement("span");
 
-    vida = 6;
-    letrasUsadas = [];
-    document.getElementById("mensagem").innerText = "";
-    document.getElementById("vidas").innerText = "Vidas restantes: " + vida;
+    span.textContent = "_";
+    span.setAttribute("word", letter.toUpperCase());
+    contentGuessWord.appendChild(span); 
+  });
 
-    await buscarPalavra();
-    resposta = Array(palavraEscolhida.length).fill("_");
-    document.getElementById("palavra").innerText = resposta.join(" ");
+  contentClue.textContent = `Dica: ${clue}`;
 }
 
-function verificarLetra() {
-    let input = document.getElementById("letraInput");
-    let letra = input.value.toLowerCase();
-    input.value = "";
-    input.focus();
+function wrongAnswer() {
+  indexImg++;
+  img.src = `img${indexImg}.png`;
 
-    if (!letra || letra.length !== 1 || !/[a-zà-ú]/.test(letra)) {
-        document.getElementById("mensagem").innerText = "Digite uma letra válida!";
-        return;
-    }
+  if (indexImg === 7) {
+    setTimeout(() => {
+      alert("Perdeu :/");
+      init();
+    }, 100);
+  }
+}
 
-    if (letrasUsadas.includes(letra)) {
-        document.getElementById("mensagem").innerText = "Essa letra já foi utilizada!";
-        return;
-    }
+function verifyLetter(letter) {
+  const arr = document.querySelectorAll(`[word="${letter}"]`);
 
-    letrasUsadas.push(letra);
-    let acertou = false;
+  if (!arr.length) wrongAnswer();
 
-    for (let j = 0; j < palavraEscolhida.length; j++) {
-        if (letra === palavraEscolhida[j]) {
-            resposta[j] = letra.toUpperCase();
-            acertou = true;
-        }
-    }
+  arr.forEach((e) => {
+    e.textContent = letter;
+  });
 
-    if (!acertou) {
-        vida--;
-    }
+  const spans = document.querySelectorAll(`.guess-word span`);
+  const won = !Array.from(spans).find((span) => span.textContent === "_");
 
-    document.getElementById("palavra").innerText = resposta.join(" ");
-    document.getElementById("vidas").innerText = "Vidas restantes: " + vida;
+  if (won) {
+    setTimeout(() => {
+      alert("Ganhou!!!");
+      init();
+    }, 100);
+  }
+}
 
-    if (!resposta.includes("_")) {
-        document.getElementById("mensagem").innerText = `Parabéns, ${jogadorNome}! Você venceu!`;
-    }
+function generateButtons() {
+  contentBtns.textContent = "";
 
-    if (vida === 0) {
-        document.getElementById("mensagem").innerText = `Você perdeu, ${jogadorNome}! A palavra era: ${palavraEscolhida.toUpperCase()}`;
-    }
+  for (let i = 97; i < 123; i++) {
+    const btn = document.createElement("button");
+    const letter = String.fromCharCode(i).toUpperCase();
+    btn.textContent = letter;
+
+    btn.onclick = () => {
+      btn.disabled = true;
+      btn.style.backgroundColor = "gray";
+      verifyLetter(letter);
+    };
+
+    contentBtns.appendChild(btn);
+  }
 }
